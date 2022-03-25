@@ -4,6 +4,7 @@ class Wordle:
 
     MAX_ATTEMPTS = 6
     WORD_LENGTH = 5
+    VOIDED_LETTER = "*"
 
     def __init__(self, secret: str):
         self.secret: str = secret.upper()
@@ -16,14 +17,27 @@ class Wordle:
 
     def guess(self, word: str):
         word = word.upper()
-        result = []
-        for i in range(self.WORD_LENGTH):
-            character = word[i]
-            letter = LetterState(character)
-            letter.is_in_word = character in self.secret
-            letter.is_in_position = character == self.secret[i]
-            result.append(letter)
 
+        result = [LetterState(x) for x in word]
+        remaining_secret = list(self.secret)
+
+        for i in range(self.WORD_LENGTH):
+            letter = result[i]
+            if letter.character == remaining_secret[i]:
+                letter.is_in_position = True
+                remaining_secret[i] = self.VOIDED_LETTER
+
+        for i in range(self.WORD_LENGTH):
+            letter = result[i]
+            if letter.is_in_position:
+                continue
+
+            for j in range(self.WORD_LENGTH):
+                if letter.character == remaining_secret[j]:
+                    remaining_secret[j] = self.VOIDED_LETTER
+                    letter.is_in_word = True
+                    break
+                          
         return result
     
     @property
